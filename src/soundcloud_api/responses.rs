@@ -1,5 +1,3 @@
-use serde::Deserialize;
-
 #[derive(Deserialize, Clone)]
 pub struct SoundcloudUser {
     pub id: u32,
@@ -7,14 +5,6 @@ pub struct SoundcloudUser {
     pub uri: String,
     pub permalink_url: String,
     pub avatar_url: String,
-    pub country: String,
-    pub full_name: String,
-    pub city: String,
-    pub description: String,
-    pub website: String,
-    pub track_count: u32,
-    pub private_tracks_count: u32,
-    pub primary_email_confirmed: bool,
 }
 
 #[cfg(test)]

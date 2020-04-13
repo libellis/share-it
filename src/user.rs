@@ -5,11 +5,6 @@ struct User {
     username: String,
     avatar_url: String,
     permalink_url: String,
-    city: String,
-    country: String,
-    public_songs_count: u32,
-    private_songs_count: u32,
-
     // TODO: Add users songs here as a list once we have Song domain model.
 }
 
@@ -20,10 +15,6 @@ impl From<SoundcloudUser> for User {
             username: s_user.username,
             avatar_url: s_user.avatar_url,
             permalink_url: s_user.permalink_url,
-            city: s_user.city,
-            country: s_user.country,
-            public_songs_count: s_user.track_count,
-            private_songs_count: s_user.private_tracks_count,
         }
     }
 }
