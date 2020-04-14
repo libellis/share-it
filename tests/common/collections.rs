@@ -20,13 +20,11 @@ impl UserRepository for MockUserRepository {
     type Error = MockError;
 
     fn insert(&mut self, user: &User) -> Result<Option<u32>, Self::Error> {
-        let key = user.id();
-
-        let result = if self.contains(key).unwrap() {
+        let result = if self.contains(user.id).unwrap() {
             None
         } else {
-            self.data.insert(key, user.clone());
-            Some(key)
+            self.data.insert(user.id, user.clone());
+            Some(user.id)
         };
 
         Ok(result)
@@ -43,11 +41,9 @@ impl UserRepository for MockUserRepository {
     }
 
     fn update(&mut self, user: &User) -> Result<Option<u32>, Self::Error> {
-        let key = user.id();
-
-        let result = if self.contains(key).unwrap() {
-            self.data.insert(key, user.clone());
-            Some(key)
+        let result = if self.contains(user.id).unwrap() {
+            self.data.insert(user.id, user.clone());
+            Some(user.id)
         } else {
             None
         };
@@ -58,7 +54,7 @@ impl UserRepository for MockUserRepository {
     fn remove(&mut self, user_id: u32) -> Result<Option<u32>, Self::Error> {
         let result = self.data.remove(&user_id);
         if let Some(user) = result {
-            Ok(Some(user.id()))
+            Ok(Some(user.id))
         } else {
             Ok(None)
         }

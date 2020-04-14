@@ -1,9 +1,6 @@
 #[macro_use]
 extern crate serde_derive;
 
-#[macro_use]
-extern crate domain_derive;
-
 pub mod soundcloud_api;
 pub use soundcloud_api::*;
 

@@ -11,7 +11,7 @@ fn test_add_user() {
     user_repo.insert(&test_user);
     let success_result = user_repo.get(user_id).unwrap();
 
-    assert_eq!(&success_result.unwrap().username(), &test_user.username())
+    assert_eq!(&success_result.unwrap().username, &test_user.username)
 }
 
 #[test]
@@ -24,7 +24,7 @@ fn test_cant_add_duplicate() {
     assert!(returned_entity.is_some());
 
     let success_result = user_repo.get(user_id).unwrap();
-    assert_eq!(&success_result.unwrap().username(), &test_user.username());
+    assert_eq!(&success_result.unwrap().username, &test_user.username);
 
     let failure_result = user_repo.insert(&test_user).unwrap();
     assert!(failure_result.is_none());

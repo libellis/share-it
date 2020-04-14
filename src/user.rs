@@ -1,28 +1,12 @@
 use crate::SoundcloudUser;
-use domain_patterns::models::Entity;
 
-#[derive(Clone, Entity)]
+#[derive(Clone)]
 pub struct User {
-    id: u32,
-    username: String,
-    avatar_url: String,
-    permalink_url: String,
+    pub id: u32,
+    pub username: String,
+    pub avatar_url: String,
+    pub permalink_url: String,
     // TODO: Add users playlists here once we have a playlist model.
-}
-
-impl User {
-    pub fn id(&self) -> u32 {
-        self.id
-    }
-
-    pub fn new(id: u32, username: String, avatar_url: String, permalink_url: String) -> User {
-        User {
-            id,
-            username,
-            avatar_url,
-            permalink_url,
-        }
-    }
 }
 
 impl From<SoundcloudUser> for User {
