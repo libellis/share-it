@@ -7,6 +7,9 @@ pub use soundcloud_api::*;
 pub mod user;
 pub use user::*;
 
+pub mod song;
+pub use song::*;
+
 #[cfg(test)]
 mod tests {
     #[test]
