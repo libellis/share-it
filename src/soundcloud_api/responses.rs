@@ -1,31 +1,18 @@
-use crate::SoundcloudUser;
-
-struct User {
-    id: u32,
-    username: String,
-    avatar_url: String,
-    permalink_url: String,
-    // TODO: Add users songs here as a list once we have Song domain model.
-}
-
-impl From<SoundcloudUser> for User {
-    fn from(s_user: SoundcloudUser) -> Self {
-        User {
-            id: s_user.id,
-            username: s_user.username,
-            avatar_url: s_user.avatar_url,
-            permalink_url: s_user.permalink_url,
-        }
-    }
+#[derive(Deserialize, Clone)]
+pub struct SoundcloudUser {
+    pub id: u32,
+    pub username: String,
+    pub uri: String,
+    pub permalink_url: String,
+    pub avatar_url: String,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::User;
-    use crate::SoundcloudUser;
+    use super::SoundcloudUser;
 
     #[test]
-    fn mapping_from_soundcloud_user_works() {
+    fn mapping_from_api_response_works() {
         let mock_api_response = r#"
         {
           "id": 3207,
@@ -54,9 +41,8 @@ mod tests {
           "primary_email_confirmed": true
         }"#;
 
-        let s_user: SoundcloudUser = serde_json::from_str(mock_api_response).unwrap();
-        let u = User::from(s_user.clone());
+        let u: SoundcloudUser = serde_json::from_str(mock_api_response).unwrap();
 
-        assert_eq!(u.id, s_user.id);
+        assert_eq!(u.id, 3207);
     }
 }
