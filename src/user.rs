@@ -1,12 +1,27 @@
 use crate::SoundcloudUser;
 
-#[derive(Clone)]
-pub struct User {
-    pub id: u32,
-    pub username: String,
-    pub avatar_url: String,
-    pub permalink_url: String,
+#[derive(Debug, Clone)]
+pub(crate) struct User {
+    id: u32,
+    username: String,
+    avatar_url: String,
+    permalink_url: String,
     // TODO: Add users playlists here once we have a playlist model.
+}
+
+impl User {
+    pub fn id(&self) -> u32 {
+        self.id
+    }
+
+    pub fn new_test_user(user_id: u32) -> User {
+        User {
+            id: user_id,
+            username: "test_user".to_string(),
+            avatar_url: "test_avatar_url".to_string(),
+            permalink_url: "test_permalink_url".to_string(),
+        }
+    }
 }
 
 impl From<SoundcloudUser> for User {
