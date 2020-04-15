@@ -140,11 +140,20 @@ mod tests {
         }
     }
 
+    fn new_test_user(user_id: u32) -> User {
+        User::new(
+            user_id,
+            "test_username".to_string(),
+            "test_avatar_url".to_string(),
+            "permalink_url".to_string(),
+        )
+    }
+
     #[test]
     #[allow(unused)]
     fn test_add_user() {
         let user_id = 0;
-        let test_user = User::new_test_user(user_id);
+        let test_user = new_test_user(user_id);
         let mut user_repo = MockUserRepository::new();
         user_repo.insert(&test_user);
         let success_result = user_repo.get(user_id).unwrap();
@@ -156,7 +165,7 @@ mod tests {
     #[allow(unused)]
     fn test_cant_add_duplicate() {
         let user_id = 0;
-        let test_user = User::new_test_user(user_id);
+        let test_user = new_test_user(user_id);
         let mut user_repo = MockUserRepository::new();
         let returned_entity = user_repo.insert(&test_user).unwrap();
         assert!(returned_entity.is_some());
@@ -191,7 +200,7 @@ mod tests {
     #[allow(unused)]
     fn test_remove_user() {
         let user_id = 0;
-        let test_user = User::new_test_user(user_id);
+        let test_user = new_test_user(user_id);
         let mut user_repo = MockUserRepository::new();
         user_repo.insert(&test_user);
 
