@@ -119,7 +119,7 @@ impl<T> Waitlist<T> where
 
 #[cfg(test)]
 mod tests {
-    use crate::{new_test_user, MockUserRepository, UserRepository, new_test_waitlist};
+    use crate::{new_test_user, MockUserRepository, UserRepository, new_test_waitlist, new_test_waitlist_with_repo};
 
     #[allow(unused)]
     fn test_waitlist_play_next() {
@@ -147,5 +147,17 @@ mod tests {
 
         // Therefore we expect to have skipped them, and be on the last dj.
         assert_eq!(waitlist.len(), 1);
+    }
+
+    #[allow(unused)]
+    fn test_waitlist_play_next_saves_users() {
+        let mut repo = MockUserRepository::new();
+        let mut waitlist = new_test_waitlist_with_repo(&mut repo);
+        waitlist.play_next().unwrap();
+        waitlist.play_next().unwrap();
+
+        // We know we have cycled our first user now. Let's get them from the repo and check their playlist length.
+        let user = repo.get(0).unwrap().unwrap();
+        assert_eq!(user.playlist_count(), 1);
     }
 }

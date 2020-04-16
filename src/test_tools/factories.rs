@@ -69,3 +69,38 @@ pub(crate) fn new_test_waitlist() -> Waitlist<MockUserRepository> {
 
     waitlist
 }
+
+pub(crate) fn new_test_waitlist_with_repo(repo: &mut MockUserRepository) -> Waitlist<&mut MockUserRepository> {
+    let mut user1 = new_test_user(0);
+    let playlist1 = new_test_playlist(user1.id(), 0);
+    user1.set_active_playlist(&playlist1.id());
+    user1.add_playlist(playlist1);
+
+    let mut user2 = new_test_user(1);
+    let playlist2 = new_test_playlist(user2.id(), 2);
+    user2.set_active_playlist(&playlist2.id());
+    user2.add_playlist(playlist2);
+
+    // This user forgot to set an active playlist.
+    let mut user3 = new_test_user(2);
+    let playlist3 = new_test_playlist(user3.id(), 4);
+    user3.add_playlist(playlist3);
+
+    let mut user4 = new_test_user(3);
+    let playlist4 = new_test_playlist(user4.id(), 6);
+    user4.set_active_playlist(&playlist4.id());
+    user4.add_playlist(playlist4);
+
+    repo.insert(&user1);
+    repo.insert(&user2);
+    repo.insert(&user3);
+    repo.insert(&user4);
+
+    let mut waitlist = Waitlist::new(repo);
+    waitlist.join(user1.id());
+    waitlist.join(user2.id());
+    waitlist.join(user3.id());
+    waitlist.join(user4.id());
+
+    waitlist
+}
