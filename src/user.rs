@@ -72,6 +72,10 @@ impl User {
             playlist.cycle_playlist()
         }
     }
+
+    pub fn playlist_count(&self) -> usize {
+        self.playlists.len()
+    }
 }
 
 impl From<SoundcloudUser> for User {
