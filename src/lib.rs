@@ -8,16 +8,13 @@ pub mod repositories;
 pub use repositories::*;
 
 pub mod user;
-pub use user::*;
 
 pub mod song;
 pub use song::*;
 
 pub mod playlist;
-pub use playlist::*;
 
 pub mod waitlist;
-pub use waitlist::*;
 
 pub mod test_tools;
 pub use test_tools::*;

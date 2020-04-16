@@ -1,4 +1,4 @@
-use crate::User;
+use crate::user::User;
 
 // TODO: If we end up needing more than one repository type, switch this to a generic Repository<T>
 pub(crate) trait UserRepository {
@@ -60,8 +60,11 @@ pub(crate) trait UserRepository {
 
 #[cfg(test)]
 mod tests {
-    use crate::{new_test_user, MockUserRepository, UserRepository, new_test_playlist};
+    use crate::MockUserRepository;
+    use crate::repositories::abstractions::UserRepository;
+    use crate::test_tools::factories::{new_test_user, new_test_playlist};
 
+    #[test]
     #[allow(unused)]
     fn test_add_user() {
         let user_id = 0;
@@ -89,24 +92,24 @@ mod tests {
         assert!(failure_result.is_none());
     }
 
-#[test]
-#[allow(unused)]
-fn test_update_user() {
-    let user_id = 0;
-    let mut test_user = new_test_user(user_id);
-    let mut user_repo = MockUserRepository::new();
-    let mut returned_user = user_repo.insert(&test_user).unwrap();
-    assert!(returned_user.is_some());
+    #[test]
+    #[allow(unused)]
+    fn test_update_user() {
+        let user_id = 0;
+        let mut test_user = new_test_user(user_id);
+        let mut user_repo = MockUserRepository::new();
+        let mut returned_user = user_repo.insert(&test_user).unwrap();
+        assert!(returned_user.is_some());
 
-    let original_user = test_user.clone();
+        let original_user = test_user.clone();
 
-    let new_playlist = new_test_playlist(user_id, 0);
-    test_user.add_playlist(new_playlist);
-    user_repo.update(&test_user).unwrap();
+        let new_playlist = new_test_playlist(user_id, 0);
+        test_user.add_playlist(new_playlist);
+        user_repo.update(&test_user).unwrap();
 
-    let updated_user = user_repo.get(user_id).unwrap();
-    assert_ne!(Some(original_user), updated_user)
-}
+        let updated_user = user_repo.get(user_id).unwrap();
+        assert_ne!(Some(original_user), updated_user)
+    }
 
     #[test]
     #[allow(unused)]

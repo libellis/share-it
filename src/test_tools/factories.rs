@@ -1,5 +1,10 @@
-use crate::{User, Song, Playlist, Waitlist, MockUserRepository, UserRepository};
+use crate::{Song, MockUserRepository};
+use crate::repositories::abstractions::UserRepository;
+use crate::user::User;
+use crate::playlist::Playlist;
+use crate::waitlist::Waitlist;
 
+#[allow(unused)]
 pub(crate) fn new_test_user(user_id: u32) -> User {
     User::new(
         user_id,
@@ -9,6 +14,7 @@ pub(crate) fn new_test_user(user_id: u32) -> User {
     )
 }
 
+#[allow(unused)]
 pub(crate) fn new_test_song(song_id: u32, user_id: u32) -> Song {
     Song::new(
         song_id,
@@ -24,6 +30,7 @@ pub(crate) fn new_test_song(song_id: u32, user_id: u32) -> Song {
     )
 }
 
+#[allow(unused)]
 pub(crate) fn new_test_playlist(user_id: u32, first_song_idx: u32) -> Playlist {
     let mut playlist = Playlist::new("Test Playlist".to_string());
     let song1 = new_test_song(first_song_idx, user_id);
@@ -34,6 +41,7 @@ pub(crate) fn new_test_playlist(user_id: u32, first_song_idx: u32) -> Playlist {
 }
 
 // TODO: Take in # of users, songs, etc. to specify how much to generate.
+#[allow(unused)]
 pub(crate) fn new_test_waitlist() -> Waitlist<MockUserRepository> {
     let mut user1 = new_test_user(0);
     let playlist1 = new_test_playlist(user1.id(), 0);
@@ -62,14 +70,15 @@ pub(crate) fn new_test_waitlist() -> Waitlist<MockUserRepository> {
     user_repo.insert(&user4);
 
     let mut waitlist = Waitlist::new(user_repo);
-    waitlist.join(user1.id());
-    waitlist.join(user2.id());
-    waitlist.join(user3.id());
-    waitlist.join(user4.id());
+    waitlist.join((user1.id(), user1.username()));
+    waitlist.join((user2.id(), user2.username()));
+    waitlist.join((user3.id(), user3.username()));
+    waitlist.join((user4.id(), user4.username()));
 
     waitlist
 }
 
+#[allow(unused)]
 pub(crate) fn new_test_waitlist_with_repo(repo: &mut MockUserRepository) -> Waitlist<&mut MockUserRepository> {
     let mut user1 = new_test_user(0);
     let playlist1 = new_test_playlist(user1.id(), 0);
@@ -97,10 +106,10 @@ pub(crate) fn new_test_waitlist_with_repo(repo: &mut MockUserRepository) -> Wait
     repo.insert(&user4);
 
     let mut waitlist = Waitlist::new(repo);
-    waitlist.join(user1.id());
-    waitlist.join(user2.id());
-    waitlist.join(user3.id());
-    waitlist.join(user4.id());
+    waitlist.join((user1.id(), user1.username()));
+    waitlist.join((user2.id(), user2.username()));
+    waitlist.join((user3.id(), user3.username()));
+    waitlist.join((user4.id(), user4.username()));
 
     waitlist
 }

@@ -83,7 +83,7 @@ mod tests {
         );
 
         playlist.add_song(song1);
-        let top_song = playlist.top_song();
+        let _top_song = playlist.top_song();
 
         assert_eq!(playlist.name, "Test Playlist");
         assert!(playlist.len() == 1);

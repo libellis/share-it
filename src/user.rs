@@ -1,13 +1,16 @@
-use crate::{SoundcloudUser, Playlist};
+use crate::SoundcloudUser;
 use std::collections::HashMap;
 use rusty_ulid::Ulid;
+use crate::playlist::Playlist;
 
 pub(crate) type PlaylistID = Ulid;
+pub(crate) type UserID = u32;
+pub(crate) type Username = String;
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct User {
-    id: u32,
-    username: String,
+    id: UserID,
+    username: Username,
     avatar_url: String,
     permalink_url: String,
     active_playlist: Option<PlaylistID>,
@@ -16,10 +19,6 @@ pub(crate) struct User {
 }
 
 impl User {
-    pub fn id(&self) -> u32 {
-        self.id
-    }
-
     pub fn new(user_id: u32,
                username: String,
                avatar_url: String,
@@ -32,6 +31,14 @@ impl User {
             active_playlist: None,
             playlists: HashMap::new(),
         }
+    }
+
+    pub fn id(&self) -> u32 {
+        self.id
+    }
+
+    pub fn username(&self) -> String {
+        self.username.clone()
     }
 
     pub fn active_playlist(&self) -> Option<&Ulid> {

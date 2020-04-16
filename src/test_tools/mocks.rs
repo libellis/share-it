@@ -1,8 +1,8 @@
 use std::fmt;
 use std::error;
 use std::collections::HashMap;
-
-use crate::{User, UserRepository};
+use crate::user::User;
+use crate::repositories::abstractions::UserRepository;
 
 #[derive(Debug, Clone)]
 pub struct MockError;

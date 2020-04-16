@@ -1,8 +1,11 @@
-use crate::{UserRepository, Song, User, PlaylistID};
+use crate::Song;
 use std::collections::VecDeque;
+use std::fmt::Display;
+use serde::export::Formatter;
+use crate::user::{UserID, Username, User, PlaylistID};
+use crate::repositories::abstractions::UserRepository;
 
-// TODO: We probably need also have the username for display purposes in the waitlist.
-type UserID = u32;
+type DJ = (UserID, Username);
 
 pub(crate) struct Waitlist<T> where
     T: UserRepository
@@ -10,7 +13,7 @@ pub(crate) struct Waitlist<T> where
     users: T,
     current_dj: Option<User>,
     current_playlist: Option<PlaylistID>,
-    queue: VecDeque<UserID>
+    queue: VecDeque<DJ>
 }
 
 impl<T> Waitlist<T> where
@@ -25,15 +28,15 @@ impl<T> Waitlist<T> where
         }
     }
 
-    pub fn join(&mut self, user_id: UserID) {
+    pub fn join(&mut self, dj: DJ) {
         // The queue needs to only be unique user_ids. A user shouldn't be able to have multiple spots
         // in the queue, so we need to first make sure they aren't already in the queue.
-        if self.contains_user(user_id) { return; }
+        if self.contains_user(dj.0) { return; }
 
-        self.queue.push_back(user_id);
+        self.queue.push_back(dj);
     }
 
-    pub fn leave(&mut self, user_id: UserID) {
+    pub fn leave(&mut self, user_id: DJ) {
         for (i, u_id) in self.queue.iter().enumerate() {
             if user_id == *u_id {
                 self.queue.remove(i);
@@ -44,8 +47,8 @@ impl<T> Waitlist<T> where
         }
     }
 
-    fn contains_user(&self, user_id: UserID) -> bool {
-        self.queue.iter().any(|u_id| { user_id == *u_id })
+    fn contains_user(&self, user_id: u32) -> bool {
+        self.queue.iter().any(|(u_id, _)| { user_id == *u_id })
     }
 
     pub fn len(&self) -> usize {
@@ -62,16 +65,18 @@ impl<T> Waitlist<T> where
         loop {
             // First we remove the current user from the top of the queue if we have a current_dj.
             // Otherwise they are the first to ever show up so they should be played.
-            if let Some(dj) = &self.current_dj {
+            if let Some(_) = &self.current_dj {
                 self.queue.pop_front();
             }
 
             // Now let's make sure we cycle their playlist for them before moving to the next DJ.
-            if let Some(dj) = &mut self.current_dj {
+            if let Some(user) = &mut self.current_dj {
                 if let Some(current_playlist) = &self.current_playlist {
-                    dj.cycle_playlist(current_playlist);
+                    user.cycle_playlist(current_playlist);
                     // Must persist dj back now that we cycled their playlist.
-                    self.users.update(dj);
+                    // TODO: If we get an underlying database error of some kind, we will
+                    // bail here, which means we fail to play next. Is this really what we want?
+                    self.users.update(user)?;
                 }
             }
 
@@ -79,7 +84,7 @@ impl<T> Waitlist<T> where
             if self.queue.is_empty() { return Ok(None); }
 
             // Now we fetch the full user from the top of the queue, based on the given user_id.
-            let u_id = self.queue.front().unwrap();
+            let (u_id, _) = self.queue.front().unwrap();
             let maybe_user = self.users.get(*u_id)?;
             if maybe_user.is_none() {
                 // TODO: This is very odd, somehow we got a user_id for a user that doesn't exist in our system.
@@ -119,10 +124,28 @@ impl<T> Waitlist<T> where
     }
 }
 
+impl<T> Display for Waitlist<T>
+    where T: UserRepository
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "Waitlist:")?;
+        for (i, (_, username)) in self.queue.iter().enumerate() {
+            if i == self.queue.len() - 1 {
+                return write!(f, "{}. {}", i+1, username);
+            }
+            writeln!(f, "{}. {}", i+1, username)?;
+        }
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::{new_test_user, MockUserRepository, UserRepository, new_test_waitlist, new_test_waitlist_with_repo};
+    use crate::MockUserRepository;
+    use crate::repositories::abstractions::UserRepository;
+    use crate::test_tools::factories::{new_test_waitlist, new_test_waitlist_with_repo};
 
+    #[test]
     #[allow(unused)]
     fn test_waitlist_play_next() {
         let mut waitlist = new_test_waitlist();
@@ -139,6 +162,7 @@ mod tests {
         assert_eq!(waitlist.len(), 3)
     }
 
+    #[test]
     #[allow(unused)]
     fn test_waitlist_skipping_works() {
         let mut waitlist = new_test_waitlist();
@@ -151,6 +175,7 @@ mod tests {
         assert_eq!(waitlist.len(), 1);
     }
 
+    #[test]
     #[allow(unused)]
     fn test_waitlist_play_next_saves_users() {
         let mut repo = MockUserRepository::new();
@@ -161,5 +186,15 @@ mod tests {
         // We know we have cycled our first user now. Let's get them from the repo and check their playlist length.
         let user = repo.get(0).unwrap().unwrap();
         assert_eq!(user.playlist_count(), 1);
+    }
+
+    #[test]
+    #[allow(unused)]
+    fn test_waitlist_string_repr() {
+        let mut waitlist = new_test_waitlist();
+        let want = "Waitlist:\n1. test_username\n2. test_username\n3. test_username\n4. test_username";
+        let got = waitlist.to_string();
+
+        assert_eq!(got, want);
     }
 }
