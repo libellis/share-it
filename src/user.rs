@@ -1,4 +1,8 @@
-use crate::SoundcloudUser;
+use crate::{SoundcloudUser, Playlist};
+use std::collections::HashMap;
+use rusty_ulid::Ulid;
+
+pub(crate) type PlaylistID = Ulid;
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct User {
@@ -6,9 +10,9 @@ pub(crate) struct User {
     username: String,
     avatar_url: String,
     permalink_url: String,
-    // TODO: For now we are representing active_playlist with a string. This should probably be a playlist id.
-    active_playlist: Option<String>,
+    active_playlist: Option<PlaylistID>,
     // TODO: Add users playlists here once we have a playlist model.
+    playlists: HashMap<PlaylistID, Playlist>
 }
 
 impl User {
@@ -26,14 +30,46 @@ impl User {
             avatar_url,
             permalink_url,
             active_playlist: None,
+            playlists: HashMap::new(),
         }
     }
 
-    pub fn active_playlist(&self) -> Option<&String> {
+    pub fn active_playlist(&self) -> Option<&Ulid> {
         if let Some(playlist_id) = &self.active_playlist {
             Some(playlist_id)
         } else {
             None
+        }
+    }
+
+    pub fn set_active_playlist(&mut self, playlist_id: &PlaylistID) {
+        self.active_playlist = Some(playlist_id.clone())
+    }
+
+    fn clear_active_playlist(&mut self) {
+        self.active_playlist = None;
+    }
+
+    pub fn get_playlist(&self, playlist_id: &PlaylistID) -> Option<&Playlist> {
+        self.playlists.get(&playlist_id)
+    }
+
+    pub fn add_playlist(&mut self, playlist: Playlist) {
+        self.playlists.insert(playlist.id(), playlist);
+    }
+
+    pub fn remove_playlist(&mut self, playlist_id: &PlaylistID) {
+        // We need to first ensure this playlist is not the active playlist.
+        if let Some(p_id) = &self.active_playlist {
+            if p_id == playlist_id { self.clear_active_playlist() }
+        }
+
+        self.playlists.remove(playlist_id);
+    }
+
+    pub fn cycle_playlist(&mut self, playlist_id: &PlaylistID) {
+        if let Some(playlist) = self.playlists.get_mut(playlist_id) {
+            playlist.cycle_playlist()
         }
     }
 }
@@ -45,6 +81,8 @@ impl From<SoundcloudUser> for User {
             username: s_user.username,
             avatar_url: s_user.avatar_url,
             permalink_url: s_user.permalink_url,
+            active_playlist: None,
+            playlists: HashMap::new(),
         }
     }
 }
