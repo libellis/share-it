@@ -6,6 +6,8 @@ pub(crate) struct User {
     username: String,
     avatar_url: String,
     permalink_url: String,
+    // TODO: For now we are representing active_playlist with a string. This should probably be a playlist id.
+    active_playlist: Option<String>,
     // TODO: Add users playlists here once we have a playlist model.
 }
 
@@ -22,7 +24,16 @@ impl User {
             id: user_id,
             username,
             avatar_url,
-            permalink_url
+            permalink_url,
+            active_playlist: None,
+        }
+    }
+
+    pub fn active_playlist(&self) -> Option<&String> {
+        if let Some(playlist_id) = &self.active_playlist {
+            Some(playlist_id)
+        } else {
+            None
         }
     }
 }
