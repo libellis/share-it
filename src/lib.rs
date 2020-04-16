@@ -19,6 +19,9 @@ pub use playlist::*;
 pub mod waitlist;
 pub use waitlist::*;
 
+pub mod test_tools;
+pub use test_tools::*;
+
 #[cfg(test)]
 mod tests {
     #[test]
