@@ -4,8 +4,8 @@ extern crate serde_derive;
 pub mod soundcloud_api;
 pub use soundcloud_api::*;
 
-pub mod collection_abstractions;
-pub use collection_abstractions::*;
+pub mod repositories;
+pub use repositories::*;
 
 pub mod user;
 pub use user::*;
@@ -15,6 +15,9 @@ pub use song::*;
 
 pub mod playlist;
 pub use playlist::*;
+
+pub mod waitlist;
+pub use waitlist::*;
 
 #[cfg(test)]
 mod tests {
