@@ -91,16 +91,18 @@ impl<T> Waitlist<T> where
 
             // Found a valid user, let's see if they have an active playlist, and if that playlist is non-empty.
             // If so, we have a match and should return the top song for playback.
-            // If not, we must remove them from the wait-list and emit a skip event.
+            // If not, we must remove them from the wait-list and skip them.
             let active_playlist_id = user.active_playlist();
             if active_playlist_id.is_none() {
                 // No active playlist set, so let's skip this DJ.
+                // TODO: Emit a skip event here.
                 continue;
             }
             let maybe_playlist = user.get_playlist(active_playlist_id.unwrap());
             if maybe_playlist.is_none() {
                 // Didn't find the active playlist in the users playlists.
                 // This is very odd and we should never hit this. Let's skip for now.
+                // TODO: Emit a skip event here.
                 continue;
             }
             // Found the playlist!
@@ -108,7 +110,7 @@ impl<T> Waitlist<T> where
 
             // Let's set the current dj and return the top song.
             // We need to store their playlist id as well in case they change their active playlist
-            // During the middle of their turn, so we always cycle the correct playlist next time
+            // during the middle of their turn, so we always cycle the correct playlist next time
             // play_next() gets called.
             self.current_dj = Some(user.clone());
             self.current_playlist = Some(playlist.id());
