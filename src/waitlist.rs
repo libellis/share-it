@@ -202,4 +202,18 @@ mod tests {
 
         assert_eq!(got, want);
     }
+
+    #[test]
+    #[allow(unused)]
+    fn empty_playlist_returns_none() {
+        let mut waitlist = new_test_waitlist();
+        waitlist.play_next().unwrap();
+        waitlist.play_next().unwrap();
+        waitlist.play_next().unwrap();
+        waitlist.play_next().unwrap();
+
+        // Now we've cycled through all 4 test users. Next one should return None.
+        let song = waitlist.play_next().unwrap();
+        assert_eq!(song, None);
+    }
 }
