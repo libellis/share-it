@@ -13,6 +13,9 @@ pub use user::*;
 pub mod song;
 pub use song::*;
 
+pub mod playlist;
+pub use playlist::*;
+
 #[cfg(test)]
 mod tests {
     #[test]

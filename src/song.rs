@@ -1,17 +1,48 @@
 use crate::SoundcloudTrack;
 
-struct Song {
+#[derive(Debug, Clone, PartialEq)]
+pub struct Song {
     id: u32,
     user_id: u32,
     duration_ms: u32,
     username: String,
+    title: String,
     // TODO: add an enum for Sharing
     sharing: String,
-    title: String,
     permalink: String,
     permalink_url: String,
     artwork_url: Option<String>,
     stream_url: String,
+}
+
+impl Song {
+    pub fn new(id: u32,
+               user_id: u32,
+               duration_ms: u32,
+               username: String,
+               title: String,
+               sharing: String,
+               permalink: String,
+               permalink_url: String,
+               artwork_url: Option<String>,
+               stream_url: String) -> Song {
+        Song {
+            id: id,
+            user_id: user_id,
+            username: username,
+            title: title,
+            duration_ms: duration_ms,
+            sharing: sharing,
+            permalink: permalink,
+            permalink_url: permalink_url,
+            artwork_url: artwork_url,
+            stream_url: stream_url
+        }
+    }
+
+    pub fn id(&self) -> u32 {
+        self.id
+    }
 }
 
 impl From<SoundcloudTrack> for Song {
