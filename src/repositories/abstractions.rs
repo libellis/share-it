@@ -64,7 +64,8 @@ mod tests {
     use std::error;
     use std::collections::HashMap;
 
-    use crate::{User, UserRepository};
+    use crate::User;
+    use super::UserRepository;
 
     #[derive(Debug, Clone)]
     pub struct MockError;
