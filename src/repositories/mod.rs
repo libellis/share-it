@@ -1,2 +1,2 @@
-pub mod repositories;
-pub use repositories::*;
+pub mod abstractions;
+pub use abstractions::*;
