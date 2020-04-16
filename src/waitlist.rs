@@ -63,6 +63,11 @@ impl<T> Waitlist<T> where
     // defined by the repository implementation.
     pub fn play_next(&mut self) -> Result<Option<Song>, T::Error> {
         loop {
+            // Base case.
+            if self.queue.is_empty() {
+                return Ok(None)
+            }
+
             // First we remove the current user from the top of the queue if we have a current_dj.
             // Otherwise they are the first to ever show up so they should be played.
             if let Some(_) = &self.current_dj {
