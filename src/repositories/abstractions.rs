@@ -1,4 +1,4 @@
-use crate::User;
+use crate::user::User;
 
 // TODO: If we end up needing more than one repository type, switch this to a generic Repository<T>
 pub(crate) trait UserRepository {
@@ -60,94 +60,9 @@ pub(crate) trait UserRepository {
 
 #[cfg(test)]
 mod tests {
-    use std::fmt;
-    use std::error;
-    use std::collections::HashMap;
-
-    use crate::{User, UserRepository};
-
-    #[derive(Debug, Clone)]
-    pub struct MockError;
-
-    impl fmt::Display for MockError {
-        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            write!(f, "this is a mock error")
-        }
-    }
-
-    impl error::Error for MockError {
-        fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-            // Generic error, underlying cause isn't tracked.
-            None
-        }
-    }
-
-    pub struct MockUserRepository {
-        data: HashMap<u32, User>
-    }
-
-    impl MockUserRepository {
-        pub fn new() -> MockUserRepository {
-            MockUserRepository {
-                data: HashMap::new(),
-            }
-        }
-    }
-
-    impl UserRepository for MockUserRepository {
-        // For ease of use in testing. Use real error type in production.
-        type Error = MockError;
-
-        fn insert(&mut self, user: &User) -> Result<Option<u32>, Self::Error> {
-            let result = if self.contains(user.id()).unwrap() {
-                None
-            } else {
-                self.data.insert(user.id(), user.clone());
-                Some(user.id())
-            };
-
-            Ok(result)
-        }
-
-        fn get(&mut self, user_id: u32) -> Result<Option<User>, Self::Error> {
-            let result = if let Some(user) = self.data.get(&user_id) {
-                Some(user.clone())
-            } else {
-                None
-            };
-
-            Ok(result)
-        }
-
-        fn update(&mut self, user: &User) -> Result<Option<u32>, Self::Error> {
-            let result = if self.contains(user.id()).unwrap() {
-                self.data.insert(user.id(), user.clone());
-                Some(user.id())
-            } else {
-                None
-            };
-
-            Ok(result)
-        }
-
-        fn remove(&mut self, user_id: u32) -> Result<Option<u32>, Self::Error> {
-            let result = self.data.remove(&user_id);
-            if let Some(user) = result {
-                Ok(Some(user.id()))
-            } else {
-                Ok(None)
-            }
-        }
-    }
-
-    fn new_test_user(user_id: u32) -> User {
-        User::new(
-            user_id,
-            "test_username".to_string(),
-            "test_avatar_url".to_string(),
-            "permalink_url".to_string(),
-        )
-    }
+    use crate::MockUserRepository;
+    use crate::repositories::abstractions::UserRepository;
+    use crate::test_tools::factories::{new_test_user, new_test_playlist};
 
     #[test]
     #[allow(unused)]
@@ -167,8 +82,8 @@ mod tests {
         let user_id = 0;
         let test_user = new_test_user(user_id);
         let mut user_repo = MockUserRepository::new();
-        let returned_entity = user_repo.insert(&test_user).unwrap();
-        assert!(returned_entity.is_some());
+        let returned_user = user_repo.insert(&test_user).unwrap();
+        assert!(returned_user.is_some());
 
         let success_result = user_repo.get(user_id).unwrap();
         assert_eq!(&success_result.unwrap(), &test_user);
@@ -177,24 +92,24 @@ mod tests {
         assert!(failure_result.is_none());
     }
 
-// TODO: Test this once we add playlist support. Check that we can update a users playlists and it persists.
-// #[test]
-// #[allow(unused)]
-// fn test_update_user() {
-//     let user_id = 0;
-//     let mut test_user = common::create_test_user(user_id);
-//     let mut user_repo = MockUserRepository::new();
-//     let returned_entity = user_repo.insert(&test_user).unwrap();
-//     assert!(returned_entity.is_some());
-//
-//     // TODO: Update users playlists here.
-//     user_repo.update(&test_user).unwrap();
-//     // check that we get back Some() which implies updating worked.
-//     assert!(returned_entity.is_some());
-//
-//     let updated_user = user_repo.get(user_id).unwrap();
-//     assert_eq!(updated_user.unwrap().first_name(), &updated_name);
-// }
+    #[test]
+    #[allow(unused)]
+    fn test_update_user() {
+        let user_id = 0;
+        let mut test_user = new_test_user(user_id);
+        let mut user_repo = MockUserRepository::new();
+        let mut returned_user = user_repo.insert(&test_user).unwrap();
+        assert!(returned_user.is_some());
+
+        let original_user = test_user.clone();
+
+        let new_playlist = new_test_playlist(user_id, 0);
+        test_user.add_playlist(new_playlist);
+        user_repo.update(&test_user).unwrap();
+
+        let updated_user = user_repo.get(user_id).unwrap();
+        assert_ne!(Some(original_user), updated_user)
+    }
 
     #[test]
     #[allow(unused)]

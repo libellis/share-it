@@ -2,6 +2,7 @@ use crate::song::Song;
 use rusty_ulid::Ulid;
 use std::collections::VecDeque;
 
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Playlist {
     id: Ulid,
     name: String,
@@ -15,6 +16,10 @@ impl Playlist {
             name: name,
             songs: VecDeque::new(),
         }
+    }
+
+    pub fn id(&self) -> Ulid {
+        self.id.clone()
     }
 
     pub fn add_song(&mut self, song: Song) {
@@ -78,7 +83,7 @@ mod tests {
         );
 
         playlist.add_song(song1);
-        let top_song = playlist.top_song();
+        let _top_song = playlist.top_song();
 
         assert_eq!(playlist.name, "Test Playlist");
         assert!(playlist.len() == 1);

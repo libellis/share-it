@@ -1,19 +1,24 @@
 use crate::SoundcloudUser;
+use std::collections::HashMap;
+use rusty_ulid::Ulid;
+use crate::playlist::Playlist;
+
+pub(crate) type PlaylistID = Ulid;
+pub(crate) type UserID = u32;
+pub(crate) type Username = String;
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct User {
-    id: u32,
-    username: String,
+    id: UserID,
+    username: Username,
     avatar_url: String,
     permalink_url: String,
+    active_playlist: Option<PlaylistID>,
     // TODO: Add users playlists here once we have a playlist model.
+    playlists: HashMap<PlaylistID, Playlist>
 }
 
 impl User {
-    pub fn id(&self) -> u32 {
-        self.id
-    }
-
     pub fn new(user_id: u32,
                username: String,
                avatar_url: String,
@@ -22,8 +27,61 @@ impl User {
             id: user_id,
             username,
             avatar_url,
-            permalink_url
+            permalink_url,
+            active_playlist: None,
+            playlists: HashMap::new(),
         }
+    }
+
+    pub fn id(&self) -> u32 {
+        self.id
+    }
+
+    pub fn username(&self) -> String {
+        self.username.clone()
+    }
+
+    pub fn active_playlist(&self) -> Option<&Ulid> {
+        if let Some(playlist_id) = &self.active_playlist {
+            Some(playlist_id)
+        } else {
+            None
+        }
+    }
+
+    pub fn set_active_playlist(&mut self, playlist_id: &PlaylistID) {
+        self.active_playlist = Some(playlist_id.clone())
+    }
+
+    fn clear_active_playlist(&mut self) {
+        self.active_playlist = None;
+    }
+
+    pub fn get_playlist(&self, playlist_id: &PlaylistID) -> Option<&Playlist> {
+        self.playlists.get(&playlist_id)
+    }
+
+    pub fn add_playlist(&mut self, playlist: Playlist) {
+        self.playlists.insert(playlist.id(), playlist);
+    }
+
+    pub fn remove_playlist(&mut self, playlist_id: &PlaylistID) {
+        // We need to first ensure this playlist is not the active playlist.
+        if let Some(p_id) = &self.active_playlist {
+            if p_id == playlist_id { self.clear_active_playlist() }
+        }
+
+        self.playlists.remove(playlist_id);
+    }
+
+    pub fn cycle_playlist(&mut self, playlist_id: &PlaylistID) {
+        if let Some(playlist) = self.playlists.get_mut(playlist_id) {
+            playlist.cycle_playlist()
+        }
+    }
+
+    pub fn playlist_count(&self) -> usize {
+        self.playlists.len()
     }
 }
 
@@ -34,6 +92,8 @@ impl From<SoundcloudUser> for User {
             username: s_user.username,
             avatar_url: s_user.avatar_url,
             permalink_url: s_user.permalink_url,
+            active_playlist: None,
+            playlists: HashMap::new(),
         }
     }
 }
