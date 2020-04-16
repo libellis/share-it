@@ -22,6 +22,15 @@ impl Playlist {
         self.songs.push_back(song);
     }
 
+    pub fn remove_song(&mut self, song_id: u32) {
+        for (i, song) in self.songs.iter().enumerate() {
+            if song.id() == song_id {
+                self.songs.remove(i);
+                return;
+            }
+        }
+    }
+
     pub fn top_song(&self) -> Option<Song> {
         if let Some(song) = self.songs.front() {
             Some(song.clone())
@@ -166,5 +175,28 @@ mod tests {
         playlist.add_song(song1.clone());
 
         assert_eq!(playlist.len(), 1);
+    }
+
+    #[test]
+    fn test_add_remove_song() {
+        let mut playlist: Playlist = Playlist::new("Test Playlist".to_string());
+        let song1: Song = Song::new(
+            1,
+            11,
+            111,
+            "test user".to_string(),
+            "test song".to_string(),
+            "public".to_string(),
+            "test-song".to_string(),
+            "https://www.soundcloud.com/test-user/test-song".to_string(),
+            Some("https://www.artwork.com/test-art".to_string()),
+            "https://api.soundcloud.com/tracks/22".to_string()
+        );
+        
+        playlist.add_song(song1.clone());
+        assert_eq!(playlist.len(), 1);
+
+        playlist.remove_song(song1.id());
+        assert_eq!(playlist.len(), 0);
     }
 }
