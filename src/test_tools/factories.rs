@@ -75,6 +75,10 @@ pub(crate) fn new_test_waitlist(spec: TestWaitlistSpec) -> Waitlist<MockUserRepo
         user.add_playlist(playlist);
         user_repo.insert(&user);
     }
+    // Unfortunately this can't happen earlier because the waitlist takes ownership of the repo,
+    // so we need to insert users first before passing ownership over.
+    // This also requires us to loop one more time to join users to the waitlist.
+    // If you can think of a cleaner way to do this, please refactor.
     let mut waitlist = Waitlist::new(user_repo);
 
     for user in &users {
@@ -103,6 +107,10 @@ pub(crate) fn new_test_waitlist_with_repo(spec: TestWaitlistSpec, repo: &mut Moc
         user.add_playlist(playlist);
         repo.insert(&user);
     }
+    // Unfortunately this can't happen earlier because the waitlist takes ownership of the repo,
+    // so we need to insert users first before passing ownership over.
+    // This also requires us to loop one more time to join users to the waitlist.
+    // If you can think of a cleaner way to do this, please refactor.
     let mut waitlist = Waitlist::new(repo);
 
     for user in &users {
