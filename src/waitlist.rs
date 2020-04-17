@@ -148,12 +148,18 @@ impl<T> Display for Waitlist<T>
 mod tests {
     use crate::MockUserRepository;
     use crate::repositories::abstractions::UserRepository;
-    use crate::test_tools::factories::{new_test_waitlist, new_test_waitlist_with_repo};
+    use crate::test_tools::factories::{new_test_waitlist_with_repo, TestWaitlistSpec, new_test_waitlist};
 
     #[test]
     #[allow(unused)]
     fn test_waitlist_play_next() {
-        let mut waitlist = new_test_waitlist();
+        let spec = TestWaitlistSpec {
+            user_count: 4,
+            playlist_per_user: 1,
+            song_per_playlist: 2,
+            which_forgot_active: Some(3),
+        };
+        let mut waitlist = new_test_waitlist(spec);
         let maybe_song = waitlist.play_next().unwrap();
 
         assert!(maybe_song.is_some());
@@ -170,7 +176,13 @@ mod tests {
     #[test]
     #[allow(unused)]
     fn test_waitlist_skipping_works() {
-        let mut waitlist = new_test_waitlist();
+        let spec = TestWaitlistSpec {
+            user_count: 4,
+            playlist_per_user: 1,
+            song_per_playlist: 2,
+            which_forgot_active: Some(3),
+        };
+        let mut waitlist = new_test_waitlist(spec);
         waitlist.play_next().unwrap();
         waitlist.play_next().unwrap();
         // This person forgot to set an active playlist.
@@ -184,7 +196,13 @@ mod tests {
     #[allow(unused)]
     fn test_waitlist_play_next_saves_users() {
         let mut repo = MockUserRepository::new();
-        let mut waitlist = new_test_waitlist_with_repo(&mut repo);
+        let spec = TestWaitlistSpec {
+            user_count: 4,
+            playlist_per_user: 1,
+            song_per_playlist: 2,
+            which_forgot_active: None,
+        };
+        let mut waitlist = new_test_waitlist_with_repo(spec, &mut repo);
         waitlist.play_next().unwrap();
         waitlist.play_next().unwrap();
 
@@ -196,7 +214,13 @@ mod tests {
     #[test]
     #[allow(unused)]
     fn test_waitlist_string_repr() {
-        let mut waitlist = new_test_waitlist();
+        let spec = TestWaitlistSpec {
+            user_count: 4,
+            playlist_per_user: 1,
+            song_per_playlist: 2,
+            which_forgot_active: None,
+        };
+        let mut waitlist = new_test_waitlist(spec);
         let want = "Waitlist:\n1. test_username\n2. test_username\n3. test_username\n4. test_username";
         let got = waitlist.to_string();
 
@@ -206,7 +230,13 @@ mod tests {
     #[test]
     #[allow(unused)]
     fn empty_playlist_returns_none() {
-        let mut waitlist = new_test_waitlist();
+        let spec = TestWaitlistSpec {
+            user_count: 4,
+            playlist_per_user: 1,
+            song_per_playlist: 2,
+            which_forgot_active: None,
+        };
+        let mut waitlist = new_test_waitlist(spec);
         waitlist.play_next().unwrap();
         waitlist.play_next().unwrap();
         waitlist.play_next().unwrap();

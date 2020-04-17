@@ -4,6 +4,21 @@ use crate::user::User;
 use crate::playlist::Playlist;
 use crate::waitlist::Waitlist;
 
+pub(crate) struct TestWaitlistSpec {
+    pub(crate) user_count: u32,
+    pub(crate) playlist_per_user: u32,
+    pub(crate) song_per_playlist: u32,
+
+    // which_forgot_active specifies which user (1, 2, 3, 4 etc.) forgot to set their
+    // active playlist.
+    pub(crate) which_forgot_active: Option<u32>,
+}
+
+enum WaitlistOut<'a> {
+    WaitlistOwned(Waitlist<MockUserRepository>),
+    WaitlistBorrowed(Waitlist<&'a mut MockUserRepository>),
+}
+
 #[allow(unused)]
 pub(crate) fn new_test_user(user_id: u32) -> User {
     User::new(
@@ -31,85 +46,68 @@ pub(crate) fn new_test_song(song_id: u32, user_id: u32) -> Song {
 }
 
 #[allow(unused)]
-pub(crate) fn new_test_playlist(user_id: u32, first_song_idx: u32) -> Playlist {
+pub(crate) fn new_test_playlist(user_id: u32, song_count: u32) -> Playlist {
     let mut playlist = Playlist::new("Test Playlist".to_string());
-    let song1 = new_test_song(first_song_idx, user_id);
-    let song2 = new_test_song(first_song_idx + 1, user_id);
-    playlist.add_song(song1);
-    playlist.add_song(song2);
+    for i in 0..song_count {
+        let song= new_test_song(i, user_id);
+        playlist.add_song(song);
+    }
     playlist
 }
 
-// TODO: Take in # of users, songs, etc. to specify how much to generate.
 #[allow(unused)]
-pub(crate) fn new_test_waitlist() -> Waitlist<MockUserRepository> {
-    let mut user1 = new_test_user(0);
-    let playlist1 = new_test_playlist(user1.id(), 0);
-    user1.set_active_playlist(&playlist1.id());
-    user1.add_playlist(playlist1);
-
-    let mut user2 = new_test_user(1);
-    let playlist2 = new_test_playlist(user2.id(), 2);
-    user2.set_active_playlist(&playlist2.id());
-    user2.add_playlist(playlist2);
-
-    // This user forgot to set an active playlist.
-    let mut user3 = new_test_user(2);
-    let playlist3 = new_test_playlist(user3.id(), 4);
-    user3.add_playlist(playlist3);
-
-    let mut user4 = new_test_user(3);
-    let playlist4 = new_test_playlist(user4.id(), 6);
-    user4.set_active_playlist(&playlist4.id());
-    user4.add_playlist(playlist4);
-
+pub(crate) fn new_test_waitlist(spec: TestWaitlistSpec) -> Waitlist<MockUserRepository> {
     let mut user_repo = MockUserRepository::new();
-    user_repo.insert(&user1);
-    user_repo.insert(&user2);
-    user_repo.insert(&user3);
-    user_repo.insert(&user4);
+    let mut users: Vec<User> = (0..spec.user_count).map(|i| {
+        new_test_user(i)
+    }).collect();
 
+    for (i, user) in users.iter_mut().enumerate() {
+        let playlist = new_test_playlist(user.id(), spec.song_per_playlist);
+        if let Some(user_num) = spec.which_forgot_active {
+            if user_num == (i + 1) as u32 {
+                user.add_playlist(playlist);
+                user_repo.insert(&user);
+                continue;
+            }
+        }
+        user.set_active_playlist(&playlist.id());
+        user.add_playlist(playlist);
+        user_repo.insert(&user);
+    }
     let mut waitlist = Waitlist::new(user_repo);
-    waitlist.join((user1.id(), user1.username()));
-    waitlist.join((user2.id(), user2.username()));
-    waitlist.join((user3.id(), user3.username()));
-    waitlist.join((user4.id(), user4.username()));
+
+    for user in &users {
+        waitlist.join((user.id(), user.username()));
+    }
 
     waitlist
 }
 
 #[allow(unused)]
-pub(crate) fn new_test_waitlist_with_repo(repo: &mut MockUserRepository) -> Waitlist<&mut MockUserRepository> {
-    let mut user1 = new_test_user(0);
-    let playlist1 = new_test_playlist(user1.id(), 0);
-    user1.set_active_playlist(&playlist1.id());
-    user1.add_playlist(playlist1);
+pub(crate) fn new_test_waitlist_with_repo(spec: TestWaitlistSpec, repo: &mut MockUserRepository) -> Waitlist<&mut MockUserRepository> {
+    let mut users: Vec<User> = (0..spec.user_count).map(|i| {
+        new_test_user(i)
+    }).collect();
 
-    let mut user2 = new_test_user(1);
-    let playlist2 = new_test_playlist(user2.id(), 2);
-    user2.set_active_playlist(&playlist2.id());
-    user2.add_playlist(playlist2);
-
-    // This user forgot to set an active playlist.
-    let mut user3 = new_test_user(2);
-    let playlist3 = new_test_playlist(user3.id(), 4);
-    user3.add_playlist(playlist3);
-
-    let mut user4 = new_test_user(3);
-    let playlist4 = new_test_playlist(user4.id(), 6);
-    user4.set_active_playlist(&playlist4.id());
-    user4.add_playlist(playlist4);
-
-    repo.insert(&user1);
-    repo.insert(&user2);
-    repo.insert(&user3);
-    repo.insert(&user4);
-
+    for (i, user) in users.iter_mut().enumerate() {
+        let playlist = new_test_playlist(user.id(), spec.song_per_playlist);
+        if let Some(user_num) = spec.which_forgot_active {
+            if user_num == (i + 1) as u32 {
+                user.add_playlist(playlist);
+                repo.insert(&user);
+                continue;
+            }
+        }
+        user.set_active_playlist(&playlist.id());
+        user.add_playlist(playlist);
+        repo.insert(&user);
+    }
     let mut waitlist = Waitlist::new(repo);
-    waitlist.join((user1.id(), user1.username()));
-    waitlist.join((user2.id(), user2.username()));
-    waitlist.join((user3.id(), user3.username()));
-    waitlist.join((user4.id(), user4.username()));
+
+    for user in &users {
+        waitlist.join((user.id(), user.username()));
+    }
 
     waitlist
 }
