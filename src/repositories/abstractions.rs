@@ -2,9 +2,9 @@ pub(crate) trait Repository<K, V> {
     /// An error that communicates that something went wrong when communicating with the external api, database etc.
     type Error: std::error::Error + std::fmt::Display + 'static + Send;
 
-    /// Inserts a User into the underlying persistent storage (MySQL, Postgres, Mongo etc.).
+    /// Inserts a Entity into the underlying persistent storage (MySQL, Postgres, Mongo etc.).
     ///
-    /// If the underlying storage did not have the User present, then insert is successful and the primary key is returned.
+    /// If the underlying storage did not have the Entity present, then insert is successful and the primary key is returned.
     /// This allows for auto-generated ids to be returned after insert.
     ///
     /// If the underlying storage does have the key present, then [`None`] is returned.
@@ -16,7 +16,7 @@ pub(crate) trait Repository<K, V> {
     /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
     fn insert(&mut self, entity: &V) -> Result<Option<K>, Self::Error>;
 
-    /// Returns the User with the supplied user_id as an owned type.
+    /// Returns the Entity with the supplied key as an owned type.
     ///
     /// # Failure case
     ///
@@ -33,8 +33,8 @@ pub(crate) trait Repository<K, V> {
         Ok(self.get(key)?.is_some())
     }
 
-    /// Updates the User in the underlying storage mechanism and if successful returns the primary
-    /// key to the caller. If the User does not exist in the database (it's unique
+    /// Updates the Entity in the underlying storage mechanism and if successful returns the primary
+    /// key to the caller. If the Entity does not exist in the database (it's unique
     /// id is not in use), then we return [`None`].
     ///
     /// # Failure case
@@ -43,8 +43,8 @@ pub(crate) trait Repository<K, V> {
     /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
     fn update(&mut self, entity: &V) -> Result<Option<K>, Self::Error>;
 
-    /// Removes a User from the underlying storage at the given user_id,
-    /// returning the user_id if the user was in the database and deleted, and otherwise returning [`None`]
+    /// Removes a Entity from the underlying storage at the given key,
+    /// returning the key if the entity was in the database and deleted, and otherwise returning [`None`]
     /// if the entity was not found (no rows effected by the operation).
     ///
     /// # Failure case
