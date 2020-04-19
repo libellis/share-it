@@ -3,6 +3,7 @@ use crate::repositories::abstractions::Repository;
 use crate::user::{UserID, User, Username};
 use rusty_ulid::Ulid;
 use std::collections::VecDeque;
+use crate::Song;
 
 #[derive(Clone)]
 pub struct ChatUser(pub UserID, pub Username);
@@ -77,6 +78,11 @@ impl<T> Chatroom<T> where
 
     pub fn djs(&self) -> &VecDeque<DJ> {
         self.waitlist.djs()
+    }
+
+    pub fn play_next(&mut self) -> Result<Option<Song>, T::Error>{
+        // TODO: We probably need to actually hand the song over for streaming somehow here.
+        self.waitlist.play_next()
     }
 }
 
