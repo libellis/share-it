@@ -1,14 +1,27 @@
 use crate::{Song, MockUserRepository};
-use crate::repositories::abstractions::UserRepository;
+use crate::repositories::abstractions::Repository;
 use crate::user::User;
 use crate::playlist::Playlist;
 use crate::waitlist::Waitlist;
+use crate::chatroom::{Chatroom, ChatUser};
+use std::collections::HashSet;
 
 pub(crate) struct TestWaitlistSpec {
     pub(crate) user_count: u32,
     pub(crate) playlist_per_user: u32,
     pub(crate) song_per_playlist: u32,
+    // which_forgot_active specifies which user (1, 2, 3, 4 etc.) forgot to set their
+    // active playlist.
+    pub(crate) which_forgot_active: Option<u32>,
+}
 
+pub(crate) struct TestChatroomSpec {
+    pub(crate) chatroom_user_count: u32,
+    pub(crate) playlist_per_user: u32,
+    pub(crate) song_per_playlist: u32,
+    // moderator_user specifies which user # (1, 2, 3, 4 etc.) is the chatroom moderator.
+    pub(crate) moderator_user: u32,
+    pub(crate) which_joined_waitlist: Vec<u32>,
     // which_forgot_active specifies which user (1, 2, 3, 4 etc.) forgot to set their
     // active playlist.
     pub(crate) which_forgot_active: Option<u32>,
@@ -118,4 +131,37 @@ pub(crate) fn new_test_waitlist_with_repo(spec: TestWaitlistSpec, repo: &mut Moc
     }
 
     waitlist
+}
+
+pub(crate) fn new_test_chatroom(spec: TestChatroomSpec) -> Chatroom<MockUserRepository> {
+    let mut user_repo = MockUserRepository::new();
+    let mut users: Vec<User> = (0..spec.chatroom_user_count).map(|i| {
+        new_test_user(i)
+    }).collect();
+
+    for (i, user) in users.iter_mut().enumerate() {
+        let playlist = new_test_playlist(user.id(), spec.song_per_playlist);
+        if let Some(user_num) = spec.which_forgot_active {
+            if user_num == (i + 1) as u32 {
+                user.add_playlist(playlist);
+                user_repo.insert(&user);
+                continue;
+            }
+        }
+        user.set_active_playlist(&playlist.id());
+        user.add_playlist(playlist);
+        user_repo.insert(&user);
+    }
+    let mut chatroom = Chatroom::new(user_repo, spec.moderator_user-1);
+
+    let waitlist_set: HashSet<u32> = spec.which_joined_waitlist.into_iter().collect();
+
+    for (i, user) in users.iter().enumerate() {
+        chatroom.enter(&ChatUser(user.id(), user.username()));
+        if waitlist_set.contains(&(i as u32 + 1)) {
+            chatroom.join_waitlist(user.id())
+        }
+    }
+
+    chatroom
 }

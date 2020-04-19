@@ -1,7 +1,4 @@
-use crate::user::User;
-
-// TODO: If we end up needing more than one repository type, switch this to a generic Repository<T>
-pub(crate) trait UserRepository {
+pub(crate) trait Repository<K, V> {
     /// An error that communicates that something went wrong when communicating with the external api, database etc.
     type Error: std::error::Error + std::fmt::Display + 'static + Send;
 
@@ -17,14 +14,14 @@ pub(crate) trait UserRepository {
     /// If we fail to communicate with the underlying storage, then an error is returned.
     ///
     /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
-    fn insert(&mut self, user: &User) -> Result<Option<u32>, Self::Error>;
+    fn insert(&mut self, entity: &V) -> Result<Option<K>, Self::Error>;
 
     /// Returns the User with the supplied user_id as an owned type.
     ///
     /// # Failure case
     ///
     /// If we fail to communicate with the underlying storage, then an error is returned.
-    fn get(&mut self, user_id: u32) -> Result<Option<User>, Self::Error>;
+    fn get(&mut self, key: &K) -> Result<Option<V>, Self::Error>;
 
     /// Returns `true` if the underlying storage contains an entity at the specified key,
     /// and otherwise returns `false`.
@@ -32,8 +29,8 @@ pub(crate) trait UserRepository {
     /// # Failure case
     ///
     /// If we fail to communicate with the underlying storage, then an error is returned.
-    fn contains(&mut self, user_id: u32) -> Result<bool, Self::Error> {
-        Ok(self.get(user_id)?.is_some())
+    fn contains(&mut self, key: &K) -> Result<bool, Self::Error> {
+        Ok(self.get(key)?.is_some())
     }
 
     /// Updates the User in the underlying storage mechanism and if successful returns the primary
@@ -44,7 +41,7 @@ pub(crate) trait UserRepository {
     ///
     /// If we fail to communicate with the underlying storage, then an error is returned.
     /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
-    fn update(&mut self, user: &User) -> Result<Option<u32>, Self::Error>;
+    fn update(&mut self, entity: &V) -> Result<Option<K>, Self::Error>;
 
     /// Removes a User from the underlying storage at the given user_id,
     /// returning the user_id if the user was in the database and deleted, and otherwise returning [`None`]
@@ -55,13 +52,13 @@ pub(crate) trait UserRepository {
     /// If we fail to communicate with the underlying storage, then an error is returned.
     ///
     /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
-    fn remove(&mut self, user_id: u32) -> Result<Option<u32>, Self::Error>;
+    fn remove(&mut self, key: &K) -> Result<Option<K>, Self::Error>;
 }
 
 #[cfg(test)]
 mod tests {
     use crate::MockUserRepository;
-    use crate::repositories::abstractions::UserRepository;
+    use crate::repositories::abstractions::Repository;
     use crate::test_tools::factories::{new_test_user, new_test_playlist};
 
     #[test]
@@ -71,7 +68,7 @@ mod tests {
         let test_user = new_test_user(user_id);
         let mut user_repo = MockUserRepository::new();
         user_repo.insert(&test_user);
-        let success_result = user_repo.get(user_id).unwrap();
+        let success_result = user_repo.get(&user_id).unwrap();
 
         assert_eq!(&success_result.unwrap(), &test_user)
     }
@@ -85,7 +82,7 @@ mod tests {
         let returned_user = user_repo.insert(&test_user).unwrap();
         assert!(returned_user.is_some());
 
-        let success_result = user_repo.get(user_id).unwrap();
+        let success_result = user_repo.get(&user_id).unwrap();
         assert_eq!(&success_result.unwrap(), &test_user);
 
         let failure_result = user_repo.insert(&test_user).unwrap();
@@ -107,7 +104,7 @@ mod tests {
         test_user.add_playlist(new_playlist);
         user_repo.update(&test_user).unwrap();
 
-        let updated_user = user_repo.get(user_id).unwrap();
+        let updated_user = user_repo.get(&user_id).unwrap();
         assert_ne!(Some(original_user), updated_user)
     }
 
@@ -120,9 +117,9 @@ mod tests {
         user_repo.insert(&test_user);
 
         // we first check that user is in repo
-        assert!(user_repo.contains(user_id).unwrap());
+        assert!(user_repo.contains(&user_id).unwrap());
 
-        user_repo.remove(user_id);
-        assert!(!user_repo.contains(user_id).unwrap())
+        user_repo.remove(&user_id);
+        assert!(!user_repo.contains(&user_id).unwrap())
     }
 }

@@ -3,13 +3,16 @@ use std::collections::VecDeque;
 use std::fmt::Display;
 use serde::export::Formatter;
 use crate::user::{UserID, Username, User, PlaylistID};
-use crate::repositories::abstractions::UserRepository;
+use crate::repositories::abstractions::Repository;
+use rusty_ulid::Ulid;
 
-type DJ = (UserID, Username);
+pub type DJ = (UserID, Username);
 
+#[derive(Debug, PartialEq)]
 pub(crate) struct Waitlist<T> where
-    T: UserRepository
+    T: Repository<u32, User>,
 {
+    id: Ulid,
     users: T,
     current_dj: Option<User>,
     current_playlist: Option<PlaylistID>,
@@ -17,15 +20,20 @@ pub(crate) struct Waitlist<T> where
 }
 
 impl<T> Waitlist<T> where
-    T: UserRepository
+    T: Repository<u32, User>,
 {
     pub fn new(user_repository: T) -> Waitlist<T> {
         Waitlist {
+            id: Ulid::generate(),
             users: user_repository,
             current_dj: None,
             current_playlist: None,
             queue: VecDeque::new(),
         }
+    }
+
+    pub fn id(&self) -> Ulid {
+        self.id.clone()
     }
 
     pub fn join(&mut self, dj: DJ) {
@@ -36,8 +44,8 @@ impl<T> Waitlist<T> where
         self.queue.push_back(dj);
     }
 
-    pub fn leave(&mut self, user_id: DJ) {
-        for (i, u_id) in self.queue.iter().enumerate() {
+    pub fn leave(&mut self, user_id: UserID) {
+        for (i, (u_id, _)) in self.queue.iter().enumerate() {
             if user_id == *u_id {
                 self.queue.remove(i);
                 // we have a unique constraint on the queue, so we should bail
@@ -90,7 +98,7 @@ impl<T> Waitlist<T> where
 
             // Now we fetch the full user from the top of the queue, based on the given user_id.
             let (u_id, _) = self.queue.front().unwrap();
-            let maybe_user = self.users.get(*u_id)?;
+            let maybe_user = self.users.get(u_id)?;
             if maybe_user.is_none() {
                 // TODO: This is very odd, somehow we got a user_id for a user that doesn't exist in our system.
                 // This seems like a very big mess up and we might want to do something other than skip them,
@@ -127,10 +135,14 @@ impl<T> Waitlist<T> where
             return Ok(playlist.top_song());
         }
     }
+
+    pub fn djs(&self) -> &VecDeque<DJ> {
+        &self.queue
+    }
 }
 
 impl<T> Display for Waitlist<T>
-    where T: UserRepository
+    where T: Repository<u32, User> + Clone
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "Waitlist:")?;
@@ -144,10 +156,27 @@ impl<T> Display for Waitlist<T>
     }
 }
 
+// Implementing Clone manually, only for cases where the repository is also clonable.
+// All other cases can still get the generic methods implemented above, but would then
+// have a non-clonable waitlist.
+impl<T> Clone for Waitlist<T>
+    where T: Repository<u32, User> + Clone,
+{
+    fn clone(&self) -> Self {
+        Waitlist {
+            id: self.id.clone(),
+            users: self.users.clone(),
+            current_dj: self.current_dj.clone(),
+            current_playlist: self.current_playlist.clone(),
+            queue: self.queue.clone(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::MockUserRepository;
-    use crate::repositories::abstractions::UserRepository;
+    use crate::repositories::abstractions::Repository;
     use crate::test_tools::factories::{new_test_waitlist_with_repo, TestWaitlistSpec, new_test_waitlist};
 
     #[test]
@@ -207,7 +236,7 @@ mod tests {
         waitlist.play_next().unwrap();
 
         // We know we have cycled our first user now. Let's get them from the repo and check their playlist length.
-        let user = repo.get(0).unwrap().unwrap();
+        let user = repo.get(&0).unwrap().unwrap();
         assert_eq!(user.playlist_count(), 1);
     }
 

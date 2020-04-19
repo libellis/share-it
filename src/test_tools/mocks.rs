@@ -2,7 +2,9 @@ use std::fmt;
 use std::error;
 use std::collections::HashMap;
 use crate::user::User;
-use crate::repositories::abstractions::UserRepository;
+use crate::repositories::abstractions::Repository;
+use rusty_ulid::Ulid;
+use crate::waitlist::Waitlist;
 
 #[derive(Debug, Clone)]
 pub struct MockError;
@@ -33,23 +35,23 @@ impl MockUserRepository {
     }
 }
 
-impl UserRepository for MockUserRepository {
+impl Repository<u32, User> for MockUserRepository {
     // For ease of use in testing. Use real error type in production.
     type Error = MockError;
 
-    fn insert(&mut self, user: &User) -> Result<Option<u32>, Self::Error> {
-        let result = if self.contains(user.id()).unwrap() {
+    fn insert(&mut self, entity: &User) -> Result<Option<u32>, Self::Error> {
+        let result = if self.contains(&entity.id()).unwrap() {
             None
         } else {
-            self.data.insert(user.id(), user.clone());
-            Some(user.id())
+            self.data.insert(entity.id(), entity.clone());
+            Some(entity.id())
         };
 
         Ok(result)
     }
 
-    fn get(&mut self, user_id: u32) -> Result<Option<User>, Self::Error> {
-        let result = if let Some(user) = self.data.get(&user_id) {
+    fn get(&mut self, key: &u32) -> Result<Option<User>, Self::Error> {
+        let result = if let Some(user) = self.data.get(key) {
             Some(user.clone())
         } else {
             None
@@ -58,10 +60,10 @@ impl UserRepository for MockUserRepository {
         Ok(result)
     }
 
-    fn update(&mut self, user: &User) -> Result<Option<u32>, Self::Error> {
-        let result = if self.contains(user.id()).unwrap() {
-            self.data.insert(user.id(), user.clone());
-            Some(user.id())
+    fn update(&mut self, entity: &User) -> Result<Option<u32>, Self::Error> {
+        let result = if self.contains(&entity.id()).unwrap() {
+            self.data.insert(entity.id(), entity.clone());
+            Some(entity.id())
         } else {
             None
         };
@@ -69,8 +71,8 @@ impl UserRepository for MockUserRepository {
         Ok(result)
     }
 
-    fn remove(&mut self, user_id: u32) -> Result<Option<u32>, Self::Error> {
-        let result = self.data.remove(&user_id);
+    fn remove(&mut self, key: &u32) -> Result<Option<u32>, Self::Error> {
+        let result = self.data.remove(key);
         if let Some(user) = result {
             Ok(Some(user.id()))
         } else {
@@ -79,23 +81,23 @@ impl UserRepository for MockUserRepository {
     }
 }
 
-impl UserRepository for &mut MockUserRepository {
+impl Repository<u32, User> for &mut MockUserRepository {
     // For ease of use in testing. Use real error type in production.
     type Error = MockError;
 
-    fn insert(&mut self, user: &User) -> Result<Option<u32>, Self::Error> {
-        let result = if self.contains(user.id()).unwrap() {
+    fn insert(&mut self, entity: &User) -> Result<Option<u32>, Self::Error> {
+        let result = if self.contains(&entity.id()).unwrap() {
             None
         } else {
-            self.data.insert(user.id(), user.clone());
-            Some(user.id())
+            self.data.insert(entity.id(), entity.clone());
+            Some(entity.id())
         };
 
         Ok(result)
     }
 
-    fn get(&mut self, user_id: u32) -> Result<Option<User>, Self::Error> {
-        let result = if let Some(user) = self.data.get(&user_id) {
+    fn get(&mut self, key: &u32) -> Result<Option<User>, Self::Error> {
+        let result = if let Some(user) = self.data.get(&key) {
             Some(user.clone())
         } else {
             None
@@ -104,10 +106,10 @@ impl UserRepository for &mut MockUserRepository {
         Ok(result)
     }
 
-    fn update(&mut self, user: &User) -> Result<Option<u32>, Self::Error> {
-        let result = if self.contains(user.id()).unwrap() {
-            self.data.insert(user.id(), user.clone());
-            Some(user.id())
+    fn update(&mut self, entity: &User) -> Result<Option<u32>, Self::Error> {
+        let result = if self.contains(&entity.id()).unwrap() {
+            self.data.insert(entity.id(), entity.clone());
+            Some(entity.id())
         } else {
             None
         };
@@ -115,8 +117,8 @@ impl UserRepository for &mut MockUserRepository {
         Ok(result)
     }
 
-    fn remove(&mut self, user_id: u32) -> Result<Option<u32>, Self::Error> {
-        let result = self.data.remove(&user_id);
+    fn remove(&mut self, key: &u32) -> Result<Option<u32>, Self::Error> {
+        let result = self.data.remove(&key);
         if let Some(user) = result {
             Ok(Some(user.id()))
         } else {
@@ -124,4 +126,3 @@ impl UserRepository for &mut MockUserRepository {
         }
     }
 }
-

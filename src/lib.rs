@@ -12,9 +12,9 @@ pub mod user;
 pub mod song;
 pub use song::*;
 
-pub mod playlist;
-
+pub mod chatroom;
 pub mod waitlist;
+pub mod playlist;
 
 pub mod test_tools;
 pub use test_tools::*;
