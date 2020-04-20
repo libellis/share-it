@@ -5,7 +5,7 @@ use rusty_ulid::Ulid;
 use std::collections::VecDeque;
 use crate::Song;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct ChatUser(pub UserID, pub Username);
 
 pub(crate) struct Chatroom<T> where
@@ -37,7 +37,14 @@ impl<T> Chatroom<T> where
         self.moderator = new_moderator;
     }
 
-    pub fn enter(&mut self, user: &ChatUser) {
+    pub fn join(&mut self, user: ChatUser) {
+        // chatroom users list needs to be unique.
+        if self.current_users.iter().any(|u| {
+            u.0 == user.0
+        }) {
+            return;
+        }
+
         self.current_users.push(user.clone());
     }
 
@@ -101,8 +108,9 @@ impl<T> Clone for Chatroom<T> where
 
 #[cfg(test)]
 mod tests {
-    use crate::test_tools::factories::{TestChatroomSpec, new_test_chatroom};
+    use crate::test_tools::factories::{TestChatroomSpec, new_test_chatroom, new_test_user};
     use std::collections::VecDeque;
+    use crate::chatroom::ChatUser;
 
     #[test]
     #[allow(unused)]
@@ -121,6 +129,27 @@ mod tests {
 
         chatroom.leave(0);
         assert_eq!(chatroom.len(), 3);
+    }
+
+    #[test]
+    #[allow(unused)]
+    fn test_chatroom_unique_users() {
+        let spec = TestChatroomSpec {
+            chatroom_user_count: 4,
+            playlist_per_user: 1,
+            song_per_playlist: 2,
+            // test user 1, and test user 3 joined the waitlist.
+            which_joined_waitlist: vec![1, 3],
+            moderator_user: 1,
+            which_forgot_active: None,
+        };
+        let mut chatroom = new_test_chatroom(spec);
+        assert_eq!(chatroom.len(), 4);
+
+        let test_user = new_test_user(0);
+        chatroom.join(ChatUser(test_user.id(), test_user.username()));
+
+        assert_eq!(chatroom.len(), 4)
     }
 
     #[test]

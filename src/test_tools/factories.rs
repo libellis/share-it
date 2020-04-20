@@ -157,7 +157,7 @@ pub(crate) fn new_test_chatroom(spec: TestChatroomSpec) -> Chatroom<MockUserRepo
     let waitlist_set: HashSet<u32> = spec.which_joined_waitlist.into_iter().collect();
 
     for (i, user) in users.iter().enumerate() {
-        chatroom.enter(&ChatUser(user.id(), user.username()));
+        chatroom.join(ChatUser(user.id(), user.username()));
         if waitlist_set.contains(&(i as u32 + 1)) {
             chatroom.join_waitlist(user.id())
         }
