@@ -12,6 +12,7 @@ pub(crate) struct Chatroom<T> where
     T: Repository<u32, User>,
 {
     id: Ulid,
+    name: String,
     moderator: UserID,
     waitlist: Waitlist<T>,
     current_users: Vec<ChatUser>,
@@ -20,9 +21,10 @@ pub(crate) struct Chatroom<T> where
 impl<T> Chatroom<T> where
     T: Repository<u32, User>,
 {
-    pub fn new(user_repo: T, creating_user: UserID) -> Chatroom<T> {
+    pub fn new(user_repo: T, creating_user: UserID, chatroom_name: String) -> Chatroom<T> {
         Chatroom {
             id: Ulid::generate(),
+            name: chatroom_name,
             moderator: creating_user,
             waitlist: Waitlist::new(user_repo),
             current_users: Vec::new(),
@@ -93,6 +95,7 @@ impl<T> Clone for Chatroom<T> where
     fn clone(&self) -> Self {
         Chatroom {
             id: self.id.clone(),
+            name: self.name.clone(),
             moderator: self.moderator.clone(),
             waitlist: self.waitlist.clone(),
             current_users: self.current_users.clone(),

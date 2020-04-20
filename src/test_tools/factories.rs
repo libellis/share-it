@@ -152,7 +152,7 @@ pub(crate) fn new_test_chatroom(spec: TestChatroomSpec) -> Chatroom<MockUserRepo
         user.add_playlist(playlist);
         user_repo.insert(&user);
     }
-    let mut chatroom = Chatroom::new(user_repo, spec.moderator_user-1);
+    let mut chatroom = Chatroom::new(user_repo, spec.moderator_user-1, "test_chatroom".to_string());
 
     let waitlist_set: HashSet<u32> = spec.which_joined_waitlist.into_iter().collect();
 
