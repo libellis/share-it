@@ -49,13 +49,7 @@ impl<T> Chatroom<T> where
     }
 
     pub fn leave(&mut self, user_id: u32) {
-        let maybe_user_idx = self.current_users.iter().position(|u| {
-            u.0 == user_id
-        });
-
-        if let Some(user_idx) = maybe_user_idx {
-            self.current_users.remove(user_idx);
-        }
+        self.current_users.retain(|u| u.0 != user_id);
     }
 
     pub fn join_waitlist(&mut self, user_id: u32) {
