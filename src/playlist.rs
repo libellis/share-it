@@ -13,7 +13,7 @@ impl Playlist {
     pub fn new(name: String) -> Playlist {
         Playlist {
             id: Ulid::generate(),
-            name: name,
+            name,
             songs: VecDeque::new(),
         }
     }
