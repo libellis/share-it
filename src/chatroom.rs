@@ -45,7 +45,7 @@ impl<T> Chatroom<T> where
             return;
         }
 
-        self.current_users.push(user.clone());
+        self.current_users.push(user);
     }
 
     pub fn leave(&mut self, user_id: u32) {
