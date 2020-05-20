@@ -22,6 +22,9 @@ pub mod playlist;
 pub mod test_tools;
 pub use test_tools::*;
 
+pub mod services;
+pub use services::*;
+
 #[cfg(test)]
 mod tests {
     #[test]
