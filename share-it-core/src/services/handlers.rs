@@ -91,10 +91,9 @@ impl<T, U> Handles<LeaveChatroomCmd> for ChatroomHandler<T, U> where
         }
         let mut chatroom = maybe_chatroom.unwrap();
 
-        let pre_len = chatroom.len();
-        chatroom.leave(cmd.user_id);
+        let left = chatroom.leave(cmd.user_id);
 
-        if chatroom.len() == pre_len {
+        if !left {
             // No work was necessary, so no need to persist.
             return Ok(None)
         }
@@ -162,9 +161,8 @@ impl<T, U> Handles<LeaveWaitlistCmd> for ChatroomHandler<T, U> where
         }
         let User{id, ..} = maybe_requesting_user.unwrap();
 
-        let pre_len = chatroom.len();
-        chatroom.leave_chatroom(id);
-        if chatroom.len() == pre_len {
+        let left = chatroom.leave_waitlist(id);
+        if !left {
             return Ok(None)
         }
 

@@ -51,8 +51,10 @@ impl<T> Chatroom<T> where
         true
     }
 
-    pub fn leave(&mut self, user_id: u32) {
+    pub fn leave(&mut self, user_id: u32) -> bool {
+        let pre_len = self.current_users.len();
         self.current_users.retain(|u| u.0 != user_id);
+        self.current_users.len() != pre_len
     }
 
     pub fn join_waitlist(&mut self, user_id: u32) -> bool {
@@ -72,8 +74,10 @@ impl<T> Chatroom<T> where
         return self.waitlist.join(dj);
     }
 
-    pub fn leave_waitlist(&mut self, user_id: u32) {
+    pub fn leave_waitlist(&mut self, user_id: u32) -> bool {
+        let pre_len = self.waitlist.len();
         self.waitlist.leave(user_id);
+        self.waitlist.len() != pre_len()
     }
 
     pub fn len(&self) -> usize {
