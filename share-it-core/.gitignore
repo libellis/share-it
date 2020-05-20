@@ -13,8 +13,11 @@ Cargo.lock
 
 # For Intellij development
 .idea
+.idea/*
+**/*.idea
 
 # For env vars in development
 .env
 *.env
 **/*.env
+

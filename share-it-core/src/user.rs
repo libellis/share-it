@@ -41,6 +41,14 @@ impl User {
         self.username.clone()
     }
 
+    pub fn avatar_url(&self) -> String {
+        self.avatar_url.clone()
+    }
+
+    pub fn permalink_url(&self) -> String {
+        self.permalink_url.clone()
+    }
+
     pub fn active_playlist(&self) -> Option<&Ulid> {
         if let Some(playlist_id) = &self.active_playlist {
             Some(playlist_id)

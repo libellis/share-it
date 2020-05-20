@@ -79,7 +79,7 @@ impl<T> Chatroom<T> where
         self.current_users.len()
     }
 
-    pub fn djs(&self) -> &VecDeque<DJ> {
+    pub fn waitlist_djs(&self) -> &VecDeque<DJ> {
         self.waitlist.djs()
     }
 
@@ -185,7 +185,7 @@ mod tests {
             (0, "test_username".to_string()),
             (2, "test_username".to_string())
         ]);
-        let got = chatroom.djs();
+        let got = chatroom.waitlist_djs();
 
         assert_eq!(got, &want)
     }
