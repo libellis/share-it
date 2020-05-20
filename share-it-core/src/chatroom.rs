@@ -39,22 +39,23 @@ impl<T> Chatroom<T> where
         self.moderator = new_moderator;
     }
 
-    pub fn join(&mut self, user: ChatUser) {
+    pub fn join(&mut self, user: ChatUser) -> bool {
         // chatroom users list needs to be unique.
         if self.current_users.iter().any(|u| {
             u.0 == user.0
         }) {
-            return;
+            return false;
         }
 
         self.current_users.push(user);
+        true
     }
 
     pub fn leave(&mut self, user_id: u32) {
         self.current_users.retain(|u| u.0 != user_id);
     }
 
-    pub fn join_waitlist(&mut self, user_id: u32) {
+    pub fn join_waitlist(&mut self, user_id: u32) -> bool {
         // First make sure user is in chatroom.
         let dj_result : Vec<&ChatUser> = self.current_users.iter()
             .filter(|u| {
@@ -63,12 +64,12 @@ impl<T> Chatroom<T> where
 
         if dj_result.len() != 1 {
             // TODO: This should probably be an error.
-            return;
+            return false;
         }
 
         let dj = (dj_result[0].0, dj_result[0].1.clone());
 
-        self.waitlist.join(dj);
+        return self.waitlist.join(dj);
     }
 
     pub fn leave_waitlist(&mut self, user_id: u32) {

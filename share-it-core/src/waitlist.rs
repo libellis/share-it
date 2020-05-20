@@ -36,12 +36,13 @@ impl<T> Waitlist<T> where
         self.id.clone()
     }
 
-    pub fn join(&mut self, dj: DJ) {
+    pub fn join(&mut self, dj: DJ) -> bool {
         // The queue needs to only be unique user_ids. A user shouldn't be able to have multiple spots
         // in the queue, so we need to first make sure they aren't already in the queue.
-        if self.contains_user(dj.0) { return; }
+        if self.contains_user(dj.0) { return false; }
 
         self.queue.push_back(dj);
+        true
     }
 
     pub fn leave(&mut self, user_id: UserID) {
