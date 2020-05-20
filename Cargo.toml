@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+"share-it-core",
+"share-it-api",
+]
